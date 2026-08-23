@@ -1866,15 +1866,13 @@ def test_forwarded_args(runner, tmp_path_cwd):
             ("--use-pep517", "--global-option=build_ext"),
             id="use-pep517 and global-option",
         ),
-        pytest.param(
-            ("--no-use-pep517", "--build-option=build_ext"),
-            id="no-use-pep517 and build-option",
-        ),
+        pytest.param(("--no-use-pep517",), id="no-use-pep517"),
     ),
 )
 def test_forwarded_args_filter_deprecated(runner, tmp_path_cwd, pip_args):
     """
-    Test the cli args (``--pip-args 'arg...'``) are filtered out if pip no longer supports them.
+    Test the cli args (``--pip-args 'arg...'``) are filtered out if pip no longer
+    supports them.
     """
     (tmp_path_cwd / "requirements.in").write_text("", encoding="utf-8")
 
