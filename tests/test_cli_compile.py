@@ -24,6 +24,7 @@ from pip._vendor.packaging.version import Version
 from piptools._compat import tempfile_compat
 from piptools._internal import _pip_api
 from piptools.build import ProjectMetadata
+from piptools.exceptions import PipToolsError
 from piptools.repositories import PyPIRepository
 from piptools.utils import COMPILE_EXCLUDE_OPTIONS
 
@@ -3010,6 +3011,17 @@ def test_only_build_deps(runner, tmp_path, monkeypatch):
         ],
     )
     assert [c.name for c in cls.call_args.kwargs["constraints"]] == ["bdep0"]
+
+
+@backtracking_resolver_only
+def test_compile_command_captures_pip_tools_errors(runner, tmp_path_cwd, monkeypatch):
+    (tmp_path_cwd / "requirements.in").touch()
+
+    cls = _mock_resolver_cls(monkeypatch)
+    cls.return_value.resolve.side_effect = PipToolsError("improper usage detected")
+
+    out = runner.pip_compile(expect_exit_code=2)
+    assert "improper usage detected" in out.stderr
 
 
 @backtracking_resolver_only
