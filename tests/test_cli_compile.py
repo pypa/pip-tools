@@ -1334,6 +1334,32 @@ def test_preserve_newline_from_input(runner, linesep, must_exclude):
     assert must_exclude not in txt
 
 
+def test_determine_linesep_skips_non_regular_files_and_dash(tmp_path, monkeypatch):
+    from piptools.scripts.compile import _determine_linesep
+
+    monkeypatch.chdir(tmp_path)
+    # create a file literally named '-' in cwd
+    with open("-", "wb") as f:
+        f.write(b"package\r\n")
+
+    regular_file = tmp_path / "req.in"
+    regular_file.write_bytes(b"package\n")
+
+    # '-' is skipped as a standard stream even when a file named '-' exists in cwd
+    assert _determine_linesep("preserve", ("-", str(regular_file))) == "\n"
+
+    # Directories are skipped
+    sub_dir = tmp_path / "somedir"
+    sub_dir.mkdir()
+    assert _determine_linesep("preserve", (str(sub_dir), str(regular_file))) == "\n"
+
+    # FIFOs / named pipes are skipped without blocking
+    if hasattr(os, "mkfifo"):
+        fifo_path = tmp_path / "test.fifo"
+        os.mkfifo(fifo_path)
+        assert _determine_linesep("preserve", ("-", str(fifo_path))) == "\n"
+
+
 def test_generate_hashes_with_split_style_annotations(pip_conf, runner, tmp_path_cwd):
     reqs_in = tmp_path_cwd / "requirements.in"
     reqs_in.write_text(dedent("""\
