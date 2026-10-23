@@ -59,10 +59,12 @@ def _determine_linesep(
     """
     if strategy == "preserve":
         for fname in filenames:
+            if fname == "-" or not os.path.isfile(fname):
+                continue
             try:
                 with open(fname, "rb") as existing_file:
                     existing_text = existing_file.read()
-            except FileNotFoundError:
+            except OSError:
                 continue
             if b"\r\n" in existing_text:
                 strategy = "CRLF"
