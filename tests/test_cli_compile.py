@@ -19,10 +19,8 @@ from pip._internal.network.session import PipSession
 from pip._internal.req.constructors import install_req_from_line
 from pip._internal.utils.hashes import FAVORITE_HASH
 from pip._internal.utils.urls import path_to_url
-from pip._vendor.packaging.version import Version
 
 from piptools._compat import tempfile_compat
-from piptools._internal import _pip_api
 from piptools.build import ProjectMetadata
 from piptools.exceptions import PipToolsError
 from piptools.repositories import PyPIRepository
@@ -41,19 +39,6 @@ backtracking_resolver_only = pytest.mark.parametrize(
     ("backtracking",),
     indirect=("current_resolver",),
 )
-
-
-skip_if_pip_does_not_support_editables_in_constraints = pytest.mark.skipif(
-    _pip_api.PIP_VERSION_MAJOR_MINOR >= (26, 0),
-    reason="pip v26.0 and later does not support editables in constraints files",
-)
-
-
-@pytest.fixture(scope="session")
-def pip_produces_absolute_paths():
-    # in pip v24.3, new normalization will occur because `comes_from` started
-    # to be normalized to abspaths
-    return _pip_api.PIP_VERSION_MAJOR_MINOR >= (24, 3)
 
 
 @dataclasses.dataclass
@@ -559,56 +544,6 @@ def test_editable_package_without_non_editable_duplicate(
     assert fake_package_dir in out.stderr
     # Shouldn't include a non-editable small-fake-a==<version>.
     assert "small-fake-a==" not in out.stderr
-
-
-@legacy_resolver_only
-@skip_if_pip_does_not_support_editables_in_constraints
-def test_editable_package_constraint_without_non_editable_duplicate(
-    pip_conf, runner, tmp_path_cwd
-):  # pragma: pip>=26.0 no cover
-    """
-    piptools keeps editable constraint,
-    without also adding a duplicate "non-editable" requirement variation
-    """
-    fake_package_dir = path_to_url(str(PACKAGES_PATH / "small_fake_a"))
-    # require editable fake package
-    (tmp_path_cwd / "constraints.txt").write_text(f"-e {fake_package_dir}")
-
-    (tmp_path_cwd / "requirements.in").write_text(
-        "-c constraints.txt"  # require editable fake package
-        "\nsmall_fake_with_unpinned_deps"  # This one also requires small_fake_a
-    )
-
-    out = runner.pip_compile("--output-file - --quiet")
-
-    assert fake_package_dir in out.stdout
-    # Shouldn't include a non-editable small-fake-a==<version>.
-    assert "small-fake-a==" not in out.stdout
-
-
-@legacy_resolver_only
-@skip_if_pip_does_not_support_editables_in_constraints
-@pytest.mark.parametrize("req_editable", ((True,), (False,)))
-def test_editable_package_in_constraints(
-    pip_conf, runner, tmp_path_cwd, req_editable
-):  # pragma: pip>=26.0 no cover
-    """
-    piptools can compile an editable that appears in both primary requirements
-    and constraints
-    """
-    fake_package_dir = os.path.join(PACKAGES_PATH, "small_fake_with_deps")
-    fake_package_dir = path_to_url(fake_package_dir)
-
-    (tmp_path_cwd / "constraints.txt").write_text("-e " + fake_package_dir)
-
-    (tmp_path_cwd / "requirements.in").write_text(
-        ("-e " if req_editable else "") + fake_package_dir + "\n-c constraints.txt"
-    )
-
-    out = runner.pip_compile("-n")
-
-    assert fake_package_dir in out.stderr
-    assert "small-fake-a==0.1" in out.stderr
 
 
 @pytest.mark.network
@@ -1805,43 +1740,19 @@ def test_build_project_metadata_isolation_option(
     assert kwargs["isolated"] is expected
 
 
-@pytest.mark.skipif(
-    _pip_api.PIP_VERSION_MAJOR_MINOR < (26, 0),
-    reason="pip v26.0+ is needed for --uploaded-prior-to support",
-)
-def test_uploaded_prior_to_option(runner, tmp_path_cwd):  # pragma: pip>=26.0 cover
+def test_uploaded_prior_to_option(runner, tmp_path_cwd):
     """
     The --uploaded-prior-to option must be passed to PyPIRepository.
     """
     (tmp_path_cwd / "requirements.in").touch()
-
-    with (
-        mock.patch.object(_pip_api, "PIP_VERSION_MAJOR_MINOR", (26, 0)),
-        mock.patch.object(_pip_api, "PIP_VERSION", Version("26.0")),
-        mock.patch(
-            "piptools.scripts.compile.PyPIRepository", wraps=PyPIRepository
-        ) as mock_repo_type,
-    ):
+    with mock.patch(
+        "piptools.scripts.compile.PyPIRepository", wraps=PyPIRepository
+    ) as mock_repo_type:
         runner.pip_compile(["--uploaded-prior-to", "2025-01-01T00:00:00Z"])
 
-    args, _ = mock_repo_type.call_args
+    args, _kwargs = mock_repo_type.call_args
     assert "--uploaded-prior-to" in args[0]
     assert "2025-01-01T00:00:00Z" in args[0]
-
-
-@mock.patch("piptools.scripts.compile.PyPIRepository")
-def test_uploaded_prior_to_requires_pip_26(PyPIRepository, runner, tmp_path_cwd):
-    """
-    The --uploaded-prior-to option must raise an error when pip < 26.0.
-    """
-    (tmp_path_cwd / "requirements.in").touch()
-
-    with mock.patch.object(_pip_api, "PIP_VERSION_MAJOR_MINOR", (25, 3)):
-        result = runner.pip_compile(
-            ["--uploaded-prior-to", "2025-01-01T00:00:00Z"], expect_exit_code=2
-        )
-
-    assert "requires pip >= 26.0" in result.stderr
 
 
 def test_forwarded_args(runner, tmp_path_cwd):
@@ -1856,7 +1767,8 @@ def test_forwarded_args(runner, tmp_path_cwd):
         "piptools.scripts.compile.PyPIRepository", wraps=PyPIRepository
     ) as mock_repo_type:
         runner.pip_compile([*cli_args, "--pip-args", " ".join(pip_args)])
-    args, _ = mock_repo_type.call_args
+
+    args, _kwargs = mock_repo_type.call_args
     assert set(pip_args).issubset(set(args[0]))
 
 
@@ -1872,8 +1784,7 @@ def test_forwarded_args(runner, tmp_path_cwd):
 )
 def test_forwarded_args_filter_deprecated(runner, tmp_path_cwd, pip_args):
     """
-    Test the cli args (``--pip-args 'arg...'``) are filtered out if pip no longer
-    supports them.
+    Test that deprecated cli args (``--pip-args 'arg...'``) are filtered out.
     """
     (tmp_path_cwd / "requirements.in").write_text("", encoding="utf-8")
 
@@ -1886,10 +1797,7 @@ def test_forwarded_args_filter_deprecated(runner, tmp_path_cwd, pip_args):
 
     (first_posarg, *_tail_args), _kwargs = mock_repo_type.call_args
 
-    if _pip_api.PIP_VERSION_MAJOR_MINOR >= (25, 3):  # pragma: pip>=25.3 cover
-        assert set(first_posarg) ^ pip_option_keys
-    else:  # pragma: pip>=25.3 no cover
-        assert set(first_posarg) & pip_option_keys
+    assert set(first_posarg) ^ pip_option_keys
 
 
 @pytest.mark.parametrize(
@@ -3435,12 +3343,11 @@ def test_pass_pip_cache_to_pip_args(tmp_path_cwd, runner, current_resolver):
 
     (tmp_path_cwd / "requirements.in").write_text("six==1.15.0")
 
-    runner.pip_compile(["--cache-dir", str(cache_dir), "--resolver", current_resolver])
-    # TODO: Remove hack once testing only on v23.3+
-    if _pip_api.PIP_VERSION >= Version("23.3.dev0"):  # pragma: pip>=23.3 cover
-        pip_http_cache_dir = "http-v2"
-    else:  # pragma: pip>=23.3 no cover
-        pip_http_cache_dir = "http"
+    out = runner.pip_compile(
+        ["--cache-dir", str(cache_dir), "--resolver", current_resolver]
+    )
+    assert out.exit_code == 0
+    pip_http_cache_dir = "http-v2"
     assert os.listdir(os.path.join(str(cache_dir), pip_http_cache_dir))
 
 
@@ -3912,7 +3819,6 @@ def test_second_order_requirements_path_handling(
     runner,
     tmp_path,
     monkeypatch,
-    pip_produces_absolute_paths,
     input_path_absolute,
     test_files_collection,
 ):
@@ -3985,7 +3891,6 @@ def test_second_order_requirements_relative_path_in_separate_dir(
     tmp_path,
     monkeypatch,
     test_files_collection,
-    pip_produces_absolute_paths,
 ):
     """
     Test normalization of ``-r`` includes when the requirements files are in
@@ -3999,15 +3904,6 @@ def test_second_order_requirements_relative_path_in_separate_dir(
     input_path = test_files_collection.get_path_to("requirements.in")
     # the output should also be relative to the starting dir, the path to 'requirements2.in'
     output_path = test_files_collection.get_path_to("requirements2.in")
-
-    # for older pip versions, recompute the output path to be relative to the input path
-    if not pip_produces_absolute_paths:  # pragma: pip<24.3 cover
-        # traverse upwards to the root tmp dir, and append the output path to that
-        # similar to pathlib.Path.relative_to(..., walk_up=True)
-        relative_segments = len(pathlib.Path(input_path).parents) - 1
-        output_path = (
-            pathlib.Path(input_path).parent / ("../" * relative_segments) / output_path
-        ).as_posix()
 
     with monkeypatch.context() as revertable_ctx:
         revertable_ctx.chdir(tmp_path)
@@ -4030,11 +3926,7 @@ def test_second_order_requirements_relative_path_in_separate_dir(
 
 
 def test_second_order_requirements_can_be_in_parent_of_cwd(
-    pip_conf,
-    runner,
-    tmp_path,
-    monkeypatch,
-    pip_produces_absolute_paths,
+    pip_conf, runner, tmp_path, monkeypatch
 ):
     """
     Test handling of ``-r`` includes when the included requirements file is in the
