@@ -4037,7 +4037,11 @@ def test_url_constraints_are_not_treated_as_file_paths(
     ids=("absolute-input", "relative-input"),
 )
 def test_that_self_referential_pyproject_toml_extra_can_be_compiled(
-    pip_conf, runner, tmp_path, monkeypatch, pyproject_path_is_absolute
+    pip_conf,
+    runner,
+    tmp_path,
+    monkeypatch,
+    pyproject_path_is_absolute,
 ):
     """
     Test that a :file:`pyproject.toml` source file can use self-referential extras
