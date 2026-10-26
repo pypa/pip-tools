@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import pytest
 from pip._internal.commands import create_command
 
 from piptools._internal import _pip_api
 
 
-@pytest.mark.skipif(
-    _pip_api.PIP_VERSION_MAJOR_MINOR < (26, 0), reason="test requires pip>=26.0"
-)
-def test_postprocess_cli_options_pre_adds_all_to_release_control_all_releases():  # pragma: pip>=26.0 cover  # noqa: E501
+def test_postprocess_cli_options_pre_adds_all_to_release_control_all_releases():
     """
     Test that ``--pre`` gets transformed into ``--all-releases :all:``
     """

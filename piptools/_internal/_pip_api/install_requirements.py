@@ -8,8 +8,6 @@ from pip._internal.req.constructors import install_req_from_line
 from pip._vendor.packaging.utils import canonicalize_name
 from pip._vendor.packaging.version import Version
 
-from . import pip_version as _pip_version
-
 
 def create_install_requirement(
     name: str, version: str | Version, ireq: InstallRequirement
@@ -56,19 +54,11 @@ def copy_install_requirement(
         "extras": template.extras,
         "user_supplied": template.user_supplied,
     }
-    if _pip_version.PIP_VERSION_MAJOR_MINOR < (25, 3):  # pragma: pip<25.3 cover
-        # Ref: https://github.com/pypa/pip-tools/issues/2252
-        kwargs["use_pep517"] = template.use_pep517
-        kwargs["global_options"] = template.global_options
     kwargs.update(extra_kwargs)
 
-    if _pip_version.PIP_VERSION_MAJOR_MINOR >= (25, 3):  # pragma: pip>=25.3 cover
-        # Ref: https://github.com/pypa/pip-tools/issues/2252
-        kwargs.pop("use_pep517", None)
-        kwargs.pop("global_options", None)
-
-    if _pip_version.PIP_VERSION_MAJOR_MINOR <= (23, 0):  # pragma: pip<=23.0 cover
-        kwargs["install_options"] = template.install_options
+    # Ref: https://github.com/pypa/pip-tools/issues/2252
+    kwargs.pop("use_pep517", None)
+    kwargs.pop("global_options", None)
 
     # Original link does not belong to install requirements constructor,
     # pop it now to update later.

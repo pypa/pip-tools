@@ -206,7 +206,4 @@ def _is_remote_pip_uri(value: str) -> bool:
 
 
 def create_wheel_cache(cache_dir: str, format_control: str | None = None) -> WheelCache:
-    kwargs: dict[str, str | None] = {"cache_dir": cache_dir}
-    if _pip_api.PIP_VERSION_MAJOR_MINOR <= (23, 0):
-        kwargs["format_control"] = format_control
-    return WheelCache(**kwargs)
+    return WheelCache(cache_dir=cache_dir)

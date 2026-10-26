@@ -586,10 +586,7 @@ class BacktrackingResolver(BaseResolver):
                 ireq.user_supplied = False
                 compatible_existing_constraints[key_from_ireq(ireq)] = ireq
 
-            wheel_cache = create_wheel_cache(
-                cache_dir=self.options.cache_dir,
-                format_control=self.options.format_control,
-            )
+            wheel_cache = create_wheel_cache(cache_dir=self.options.cache_dir)
 
             temp_dir = TempDirectory(
                 delete=not self.options.no_clean,
@@ -607,11 +604,6 @@ class BacktrackingResolver(BaseResolver):
                 download_dir=None,
             )
 
-            extra_resolver_kwargs = {}
-            if _pip_api.PIP_VERSION_MAJOR_MINOR < (25, 3):  # pragma: pip<25.3 cover
-                # Ref: https://github.com/pypa/pip-tools/issues/2252
-                extra_resolver_kwargs["use_pep517"] = self.options.use_pep517
-
             resolver = self.command.make_resolver(
                 preparer=preparer,
                 finder=self.finder,
@@ -622,7 +614,6 @@ class BacktrackingResolver(BaseResolver):
                 ignore_requires_python=False,
                 force_reinstall=False,
                 upgrade_strategy="to-satisfy-only",
-                **extra_resolver_kwargs,
             )
 
             self.command.trace_basic_info(self.finder)

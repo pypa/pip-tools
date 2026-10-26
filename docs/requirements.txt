@@ -153,7 +153,7 @@ wheel==0.47.0
     # via pip-tools (pyproject.toml)
 
 # The following packages are considered to be unsafe in a requirements file:
-pip==26.1.1
+pip==26.2.2
     # via pip-tools (pyproject.toml)
 setuptools==83.0.0
     # via

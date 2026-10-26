@@ -215,15 +215,7 @@ def base_resolver(depcache):
 
 @pytest.fixture
 def from_line():
-    def _from_line(*args, **kwargs):
-        if _pip_api.PIP_VERSION_MAJOR_MINOR <= (23, 0):  # pragma: pip<=23.0 cover
-            hash_options = kwargs.pop("hash_options", {})
-            options = kwargs.pop("options", {})
-            options["hashes"] = hash_options
-            kwargs["options"] = options
-        return install_req_from_line(*args, **kwargs)
-
-    return _from_line
+    return install_req_from_line
 
 
 @pytest.fixture
