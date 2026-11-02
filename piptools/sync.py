@@ -201,7 +201,12 @@ def diff(
             to_install.add(requirement)
 
     # Make sure to not uninstall any packages that should be ignored
-    to_uninstall -= set(pkgs_to_ignore)
+    ignored_pkgs = set(pkgs_to_ignore)
+    to_uninstall = {
+        key
+        for key in to_uninstall
+        if canonicalize_name(key.split(" @ ", 1)[0]) not in ignored_pkgs
+    }
 
     return (to_install, to_uninstall)
 
