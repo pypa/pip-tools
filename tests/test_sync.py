@@ -241,10 +241,12 @@ def test_diff_leave_packaging_packages_alone(fake_dist, from_line):
 
 
 def test_diff_leave_direct_url_pip_alone(fake_dist, from_line):
-    # Suppose pip is installed via a direct URL (PEP 610)
+    # Suppose pip is installed via a direct URL (PEP 610).
     pip_url = (
-        "pip @ https://files.pythonhosted.org/packages/3f/06/3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/"
-        "pip-26.2.2-py3-none-any.whl#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+        "pip @ https://files.pythonhosted.org/packages/3f/06/"
+        "3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/"
+        "pip-26.2.2-py3-none-any.whl"
+        "#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
     )
     installed = [
         fake_dist("django==1.7"),
@@ -252,7 +254,8 @@ def test_diff_leave_direct_url_pip_alone(fake_dist, from_line):
         fake_dist(pip_url),
     ]
 
-    # A requirement that does not mention pip should keep pip around, but uninstall first
+    # A requirement that does not mention pip should keep pip around, but
+    # uninstall first.
     reqs = [from_line("django==1.7")]
 
     to_install, to_uninstall = diff(reqs, installed)
