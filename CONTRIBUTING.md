@@ -77,7 +77,7 @@ opportunities, and refrain from asking an LLM to produce a complete solution.
 
 ## Project Release Process
 
-Releases require approval by a member of the [`pip-tools-leads` team].
+Releases require approval by a member of the [`pip-tools-admins` team].
 
 Commands given below may assume that your fork is named `origin` in git
 remotes and the main repo is named `upstream`.
@@ -110,7 +110,7 @@ This is the current release process:
 [changelog]: ./CHANGELOG.md
 [GitHub Release Workflow]:
 https://github.com/pypa/pip-tools/actions/workflows/release.yml
-[`pip-tools-leads` team]:
-https://github.com/orgs/jazzband/teams/pip-tools-leads
+[`pip-tools-admins` team]:
+https://github.com/orgs/pypa/teams/pip-tools-admins
 [`good first issue` label]:
 https://github.com/pypa/pip-tools/labels/good%20first%20issue%22

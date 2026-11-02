@@ -109,15 +109,4 @@ jobs:
             needs.build-and-test.outputs.project-version
           }} to PyPI
           🔏
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e  # v1.13.0
-      - name: Clean up the publish attestation leftovers
-        run: rm -fv dist/*.publish.attestation
-      - name: Upload packages to Jazzband
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e  # v1.13.0
-        with:
-          user: jazzband
-          password: ${{ secrets.JAZZBAND_RELEASE_KEY }}
-          repository-url: >-
-            https://jazzband.co/projects/${{
-              needs.build-and-test.outputs.project-name
-            }}/upload
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086  # v1.14.3
