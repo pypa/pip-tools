@@ -3450,14 +3450,16 @@ def test_resolution_failure(runner):
     assert out.exit_code != 0, out
 
 
-def test_resolver_reaches_max_rounds(runner):
-    """Test resolver reched max rounds and raises error."""
+@pytest.mark.parametrize("invalid_rounds", (0, -1))
+def test_max_rounds_invalid_value(runner, invalid_rounds):
+    """Test that non-positive max-rounds values are rejected with a clean usage error."""
     with open("requirements.in", "w") as reqs_out:
         reqs_out.write("six")
 
-    out = runner.invoke(cli, ["--max-rounds", 0])
+    out = runner.invoke(cli, ["--max-rounds", invalid_rounds])
 
-    assert out.exit_code != 0, out
+    assert out.exit_code == 2
+    assert "Invalid value for '--max-rounds'" in out.output
 
 
 def test_preserve_via_requirements_constrained_dependencies_when_run_twice(
