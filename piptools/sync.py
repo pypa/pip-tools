@@ -205,7 +205,7 @@ def diff(
     to_uninstall = {
         key
         for key in to_uninstall
-        if canonicalize_name(key.split(" @ ", 1)[0]) not in ignored_pkgs
+        if canonicalize_name(key.partition("@")[0].strip()) not in ignored_pkgs
     }
 
     return (to_install, to_uninstall)
