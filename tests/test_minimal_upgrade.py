@@ -8,7 +8,7 @@ from piptools.utils import key_from_ireq
 
 @pytest.mark.parametrize(
     ("input", "pins", "expected"),
-    (
+    tuple(
         (tup)
         for tup in [
             # Add Flask to an existing requirements.in, using --no-upgrade
