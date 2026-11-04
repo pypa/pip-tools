@@ -162,7 +162,7 @@ def test_static_parse_of_self_referential_extra(
 
     foo_req = metadata.requirements[1]
     assert foo_req.extras == {"ext1"}
-    assert foo_req.link.url == tmp_path.as_uri()
+    assert foo_req.link is None
 
 
 def test_static_parse_invalid(tmp_path):

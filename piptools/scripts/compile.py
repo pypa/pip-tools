@@ -365,6 +365,9 @@ def cli(
     ###
 
     constraints: list[InstallRequirement] = []
+    recursive_projects: list[
+        tuple[tuple[InstallRequirement, ...], list[InstallRequirement]]
+    ] = []
     setup_file_found = False
     for src_file in src_files:
         is_setup_file = os.path.basename(src_file) in METADATA_FILENAMES
@@ -408,6 +411,14 @@ def cli(
                 log.error(f"Failed to parse {os.path.abspath(src_file)}")
                 sys.exit(2)
 
+            project_name = canonicalize_name(metadata.name)
+            references = [
+                req
+                for req in metadata.requirements
+                if canonicalize_name(req.name) == project_name
+            ]
+            if references:
+                recursive_projects.append((metadata.requirements, references))
             if not only_build_deps:
                 constraints.extend(metadata.requirements)
                 if all_extras:
@@ -459,6 +470,26 @@ def cli(
     if extras and not setup_file_found:
         msg = "--extra has effect only with setup.py and PEP-517 input formats"
         raise click.BadParameter(msg)
+
+    # A recursive extra like dev = ["foo[test]"] only selects more of that project's
+    # extras; apply them to its requirements instead of resolving the project itself.
+    self_references: list[InstallRequirement] = []
+    for requirements, references in recursive_projects:
+        selected: set[str] = set()
+        implied = set(extras)
+        while implied:
+            selected |= implied
+            implied = {
+                extra
+                for req in references
+                if req.match_markers(selected)
+                for extra in req.extras
+            } - selected
+        for req in requirements:
+            if req.match_markers(selected):
+                drop_extras(req)
+        self_references += references
+    constraints = [req for req in constraints if req not in self_references]
 
     primary_packages = {
         key_from_ireq(ireq) for ireq in constraints if not ireq.constraint

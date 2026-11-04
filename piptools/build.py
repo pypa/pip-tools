@@ -28,12 +28,14 @@ _T = _t.TypeVar("_T")
 
 @dataclass
 class StaticProjectMetadata:
+    name: str
     extras: tuple[str, ...]
     requirements: tuple[InstallRequirement, ...]
 
 
 @dataclass
 class ProjectMetadata:
+    name: str
     extras: tuple[str, ...]
     requirements: tuple[InstallRequirement, ...]
     build_requirements: tuple[InstallRequirement, ...]
@@ -84,11 +86,6 @@ def maybe_statically_parse_project_metadata(
     ):
         for req in reqs:
             requirement = Requirement(req)
-            if requirement.name == package_name:
-                # Similar to logic for handling self-referential requirements
-                # from _prepare_requirements
-                requirement.url = src_file.parent.absolute().as_uri()
-
             # Note we don't need to modify `requirement` to include this extra
             marker = Marker(f"extra == '{extra}'")
             install_requirements.append(
@@ -96,6 +93,7 @@ def maybe_statically_parse_project_metadata(
             )
 
     return StaticProjectMetadata(
+        name=package_name,
         extras=tuple(extras),
         requirements=tuple(install_requirements),
     )
@@ -166,6 +164,7 @@ def build_project_metadata(
             )
         )
         return ProjectMetadata(
+            name=_get_name(metadata),
             extras=extras,
             requirements=requirements,
             build_requirements=build_requirements,
@@ -264,18 +263,9 @@ def _prepare_requirements(
 ) -> Iterator[InstallRequirement]:
     package_name = _get_name(metadata)
     comes_from = f"{package_name} ({src_file.as_posix()})"
-    package_dir = src_file.parent
 
     for req in metadata.get_all("Requires-Dist") or []:
         parts = parse_req_from_line(req, comes_from)
-        if parts.requirement.name == package_name:
-            # Replace package name with package directory in the requirement
-            # string so that pip can find the package as self-referential.
-            # Note the string can contain extras, so we need to replace only
-            # the package name, not the whole string.
-            replaced_package_name = req.replace(package_name, str(package_dir), 1)
-            parts = parse_req_from_line(replaced_package_name, comes_from)
-
         yield _pip_api.copy_install_requirement(
             InstallRequirement(
                 parts.requirement,

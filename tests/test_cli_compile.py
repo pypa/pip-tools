@@ -3033,6 +3033,7 @@ def _mock_resolver_cls(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 def _mock_build_project_metadata(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     func = MagicMock(
         return_value=ProjectMetadata(
+            name="foo",
             extras=("e",),
             requirements=(
                 install_req_from_line("rdep0"),
@@ -3629,8 +3630,7 @@ def test_compile_recursive_extras_static(
             "-",
         ],
     )
-    expected = rf"""foo[footest] @ {tmp_path.as_uri()}
-small-fake-a==0.2
+    expected = """small-fake-a==0.2
 small-fake-b==0.3
 """
     try:
@@ -3640,6 +3640,88 @@ small-fake-b==0.3
         print(out.stdout)
         print(out.stderr)
         raise
+
+
+@backtracking_resolver_only
+def test_compile_nested_recursive_extras_static(
+    runner,
+    tmp_path,
+    minimal_wheels_path,
+    current_resolver,
+):
+    (tmp_path / "pyproject.toml").write_text(dedent("""
+            [project]
+            name = "foo"
+            version = "0.0.1"
+            [project.optional-dependencies]
+            footest = ["small-fake-a"]
+            fooall = ["foo[footest]", "small-fake-b"]
+            dev = ["foo[fooall]"]
+            """))
+    out = runner.invoke(
+        cli,
+        [
+            "--no-build-isolation",
+            "--no-header",
+            "--no-annotate",
+            "--no-emit-options",
+            "--extra",
+            "dev",
+            "--find-links",
+            minimal_wheels_path.as_posix(),
+            os.fspath(tmp_path / "pyproject.toml"),
+            "--output-file",
+            "-",
+        ],
+    )
+    assert out.exit_code == 0, out.stderr
+    assert out.stdout == "small-fake-a==0.2\nsmall-fake-b==0.3\n"
+
+
+@backtracking_resolver_only
+def test_compile_recursive_extras_only_select_their_own_projects_extras(
+    runner,
+    tmp_path,
+    minimal_wheels_path,
+    current_resolver,
+):
+    (tmp_path / "foo").mkdir()
+    (tmp_path / "foo" / "pyproject.toml").write_text(dedent("""
+            [project]
+            name = "foo"
+            version = "0.0.1"
+            [project.optional-dependencies]
+            footest = ["small-fake-a"]
+            dev = ["foo[footest]"]
+            """))
+    (tmp_path / "bar").mkdir()
+    (tmp_path / "bar" / "pyproject.toml").write_text(dedent("""
+            [project]
+            name = "bar"
+            version = "0.0.1"
+            [project.optional-dependencies]
+            footest = ["small-fake-b"]
+            dev = []
+            """))
+    out = runner.invoke(
+        cli,
+        [
+            "--no-build-isolation",
+            "--no-header",
+            "--no-annotate",
+            "--no-emit-options",
+            "--extra",
+            "dev",
+            "--find-links",
+            minimal_wheels_path.as_posix(),
+            os.fspath(tmp_path / "foo" / "pyproject.toml"),
+            os.fspath(tmp_path / "bar" / "pyproject.toml"),
+            "--output-file",
+            "-",
+        ],
+    )
+    assert out.exit_code == 0, out.stderr
+    assert out.stdout == "small-fake-a==0.2\n"
 
 
 @backtracking_resolver_only
@@ -3690,8 +3772,7 @@ def test_compile_recursive_extras_build_targets(
             "-",
         ],
     )
-    expected = rf"""foo[footest] @ {tmp_path.as_uri()}
-small-fake-a==0.2
+    expected = rf"""small-fake-a==0.2
 small-fake-b==0.3
 
 # The following packages are considered to be unsafe in a requirements file:
@@ -4385,11 +4466,57 @@ def test_that_self_referential_pyproject_toml_extra_can_be_compiled(
 
     assert out.exit_code == 0
     assert out.stdout == dedent(f"""\
-        foo[ext1] @ {src_file.parent.absolute().as_uri()}
-            # via foo ({input_path})
         small-fake-a==0.2
-            # via foo
+            # via foo ({input_path})
         """)
+
+
+@pytest.mark.parametrize(
+    ("requirement", "expected_project_line"),
+    (
+        (".", "foo @ {uri}"),
+        ("-e .", "-e ."),
+    ),
+)
+def test_self_referential_pyproject_toml_extra_keeps_project_listed_by_user(
+    pip_conf, runner, tmp_path, monkeypatch, requirement, expected_project_line
+):
+    """
+    Test that a project listed in a requirements file is still pinned when its
+    recursive extra is compiled alongside it.
+    """
+    (tmp_path / "pyproject.toml").write_text(dedent("""
+            [project]
+            name = "foo"
+            version = "0.1.0"
+            [project.optional-dependencies]
+            ext1 = ["small-fake-a"]
+            ext2 = ["foo[ext1]"]
+            """))
+    (tmp_path / "requirements.in").write_text(f"{requirement}\n")
+
+    with monkeypatch.context() as revertable_ctx:
+        revertable_ctx.chdir(tmp_path)
+        out = runner.invoke(
+            cli,
+            [
+                "--output-file",
+                "-",
+                "--quiet",
+                "--no-header",
+                "--no-emit-options",
+                "--no-annotate",
+                "--no-build-isolation",
+                "--extra",
+                "ext2",
+                "pyproject.toml",
+                "requirements.in",
+            ],
+        )
+
+    assert out.exit_code == 0
+    project_line = expected_project_line.format(uri=tmp_path.as_uri())
+    assert out.stdout == f"{project_line}\nsmall-fake-a==0.2\n"
 
 
 def test_compile_with_generate_hashes_preserves_extra_index_url(
