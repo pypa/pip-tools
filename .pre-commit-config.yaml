@@ -146,6 +146,17 @@ repos:
       - scan
       files: ^changelog\.d/(.*\..*|\.draft_changelog_partial)\.md$
     - id: pymarkdown
+      alias: md-security-policy
+      name: PyMarkdown (security policy)
+      args:
+      # NOTE: We have a header "tip", which violates `first-line-heading`
+      # NOTE: but renders fine.
+      # NOTE: `no-emphasis-as-heading` improperly flags emphasized sentences
+      # NOTE: inside of blockquotes.
+      - --disable-rules=first-line-heading,no-emphasis-as-heading
+      - scan
+      files: ^SECURITY\.md$
+    - id: pymarkdown
       alias: md-issue-pr-templates
       name: PyMarkdown (issue and pull request templates)
       args:
@@ -181,6 +192,7 @@ repos:
                 |afterword
               )(\.\d+)?(\.md)?
             )
+            |SECURITY\.md
             |CHANGELOG\.md
           )
         $
