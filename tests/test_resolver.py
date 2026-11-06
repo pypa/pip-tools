@@ -10,7 +10,7 @@ from piptools.resolver import RequirementSummary, combine_install_requirements
 
 @pytest.mark.parametrize(
     ("input", "expected", "prereleases", "unsafe_constraints"),
-    (
+    tuple(
         (tup + (False, set())[len(tup) - 2 :])
         for tup in [
             (["Django"], ["django==1.8"]),
@@ -208,7 +208,7 @@ def test_resolver(
 
 @pytest.mark.parametrize(
     ("input", "expected", "prereleases"),
-    (
+    tuple(
         (tup + (False,))[:3]
         for tup in [
             (

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import pathlib
 import shutil
 import textwrap
@@ -27,7 +28,7 @@ def test_build_project_metadata_resolved_correct_build_dependencies(
     targets.
     """
     # When used as argument to the runner it is not passed to pip
-    monkeypatch.setenv("PIP_FIND_LINKS", fake_dists_with_build_deps)
+    monkeypatch.setenv("PIP_FIND_LINKS", os.fspath(fake_dists_with_build_deps))
     src_pkg_path = pathlib.Path(PACKAGES_PATH) / "small_fake_with_build_deps"
     shutil.copytree(src_pkg_path, tmp_path, dirs_exist_ok=True)
     src_file = tmp_path / "setup.py"

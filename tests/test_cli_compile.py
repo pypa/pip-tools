@@ -3061,7 +3061,7 @@ def test_all_extras_and_all_build_deps(
     """
     src_pkg_path = pathlib.Path(PACKAGES_PATH) / "small_fake_with_build_deps"
     # When used as argument to the runner it is not passed to pip
-    monkeypatch.setenv("PIP_FIND_LINKS", fake_dists_with_build_deps)
+    monkeypatch.setenv("PIP_FIND_LINKS", os.fspath(fake_dists_with_build_deps))
 
     with runner.isolated_filesystem(tmp_path) as tmp_pkg_path:
         shutil.copytree(src_pkg_path, tmp_pkg_path, dirs_exist_ok=True)
