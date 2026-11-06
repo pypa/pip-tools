@@ -12,6 +12,7 @@ from pip._internal.models.direct_url import ArchiveInfo, DirectUrl
 from pip._internal.utils.urls import path_to_url
 from pytest_mock import MockerFixture
 
+import piptools.sync
 from piptools.exceptions import IncompatibleRequirements
 from piptools.sync import (
     _direct_url_has_archive_hash,
@@ -233,6 +234,65 @@ def test_diff_leave_packaging_packages_alone(fake_dist, from_line):
 
     # Then this Django-only requirement should keep pip around (i.e. NOT
     # uninstall it), but uninstall first
+    reqs = [from_line("django==1.7")]
+
+    to_install, to_uninstall = diff(reqs, installed)
+    assert to_install == set()
+    assert to_uninstall == {"first"}
+
+
+def test_diff_leave_direct_url_pip_alone(fake_dist, from_line):
+    # Suppose pip is installed via a direct URL (PEP 610).
+    pip_url = (
+        "pip @ https://files.pythonhosted.org/packages/3f/06/"
+        "3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/"
+        "pip-26.2.2-py3-none-any.whl"
+        "#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+    )
+    installed = [
+        fake_dist("django==1.7"),
+        fake_dist("first==2.0.1"),
+        fake_dist(pip_url),
+    ]
+
+    # A requirement that does not mention pip should keep pip around, but
+    # uninstall first.
+    reqs = [from_line("django==1.7")]
+
+    to_install, to_uninstall = diff(reqs, installed)
+    assert to_install == set()
+    assert to_uninstall == {"first"}
+
+
+def test_diff_leave_direct_url_pip_alone_without_spaces(
+    fake_dist, from_line, monkeypatch
+):
+    # Suppose pip is installed via a direct URL without spaces around @.
+    pip_url = (
+        "pip @ https://files.pythonhosted.org/packages/3f/06/"
+        "3e4420302363fbb71be3c7f35ce042f54bfca330e3e66b3a2e3c4cca579f/"
+        "pip-26.2.2-py3-none-any.whl"
+        "#sha256=fd7f4dfa8190e014013b9f08f3e973f4e4c26ffd179a204895533a7254813a70"
+    )
+    installed = [
+        fake_dist("django==1.7"),
+        fake_dist("first==2.0.1"),
+        fake_dist(pip_url),
+    ]
+
+    original_diff_key = piptools.sync.diff_key_from_req
+    monkeypatch.setattr(
+        piptools.sync,
+        "diff_key_from_req",
+        lambda dist: (
+            "pip@https://example.invalid/pip.whl"
+            if dist.key == "pip"
+            else original_diff_key(dist)
+        ),
+    )
+
+    # A requirement that does not mention pip should keep pip around, but
+    # uninstall first.
     reqs = [from_line("django==1.7")]
 
     to_install, to_uninstall = diff(reqs, installed)
