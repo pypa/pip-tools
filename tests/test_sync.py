@@ -284,9 +284,11 @@ def test_diff_leave_direct_url_pip_alone_without_spaces(
     monkeypatch.setattr(
         piptools.sync,
         "diff_key_from_req",
-        lambda dist: "pip@https://example.invalid/pip.whl"
-        if dist.key == "pip"
-        else original_diff_key(dist),
+        lambda dist: (
+            "pip@https://example.invalid/pip.whl"
+            if dist.key == "pip"
+            else original_diff_key(dist)
+        ),
     )
 
     # A requirement that does not mention pip should keep pip around, but
