@@ -24,7 +24,6 @@ from types import ModuleType
 import pytest
 
 import piptools
-from piptools._internal import _pip_api
 
 
 def _find_all_importables(pkg: ModuleType) -> list[str]:
@@ -65,36 +64,13 @@ def _discover_path_importables(pkg_pth: Path, pkg_name: str) -> Iterator[str]:
 
 def _allowed_deprecation_warning_filters() -> list[str]:
     """
-    Yield filters which allow for deprecation warnings based on the current
+    Return filters which allow for deprecation warnings based on the current
     test environment.
     """
     # note that we can't use regex syntax in filters as of yet, only literals
     # https://github.com/python/cpython/pull/138149 allows regex usage, but is not
     # yet supported on all Python versions we support
-    flags: list[str] = []
-    if _pip_api.PIP_VERSION_MAJOR_MINOR < (25, 3):  # pragma: pip<25.3 cover
-        flags.extend(
-            ("-W", "ignore:pkg_resources is deprecated as an API.:DeprecationWarning:")
-        )
-
-    if _pip_api.PIP_VERSION_MAJOR_MINOR <= (22, 2):  # pragma: pip<=22.2 cover
-        flags.extend(
-            (
-                "-W",
-                (
-                    "ignore:path is deprecated. Use files() instead."
-                    ":DeprecationWarning:"
-                ),
-                "-W",
-                (
-                    "ignore:Creating a LegacyVersion has been deprecated "
-                    "and will be removed in the next major release"
-                    ":DeprecationWarning:"
-                ),
-            )
-        )
-
-    return flags
+    return []  # at present, there are no filters
 
 
 @pytest.mark.parametrize("import_path", _find_all_importables(piptools))

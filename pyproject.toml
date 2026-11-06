@@ -40,7 +40,7 @@ dependencies = [
   # direct dependencies
   "build >= 1.0.0",
   "click >= 8",
-  "pip >= 22.2",
+  "pip >= 26.2.2",
   "pyproject_hooks",
   "typing_extensions >= 4.6.0; python_version < '3.11'",
   "tomli; python_version < '3.11'",
