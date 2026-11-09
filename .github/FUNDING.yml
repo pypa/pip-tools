@@ -1,9 +1,13 @@
 ---
 
+custom:
+- https://pypi.org/sponsor/
+
 github:
+- pypa
 - sirosen
 - webknjaz
 
-custom: "https://pypi.org/sponsor/"
+tidelift: pypi/pip-tools
 
 ...
