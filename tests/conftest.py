@@ -13,7 +13,6 @@ import textwrap
 import typing as _t
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from importlib.metadata import version as version_of
 from pathlib import Path
 from unittest import mock
 
@@ -145,11 +144,7 @@ class PipToolsCliRunner:
     """
 
     def __init__(self) -> None:
-        # mix_stderr is only used on older click versions, which we only test on py3.9
-        if Version(version_of("click")) < Version("8.2"):  # pragma: <3.10 cover
-            self.click_runner = click.testing.CliRunner(mix_stderr=False)
-        else:  # pragma: >=3.10 cover
-            self.click_runner = click.testing.CliRunner()
+        self.click_runner = click.testing.CliRunner()
 
     def invoke(
         self,
