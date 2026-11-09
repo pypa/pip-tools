@@ -4,6 +4,8 @@
 
 # Reporting Vulnerabilities
 
+<!-- sphinx-inclusion-post-this-line -->
+
 > [!caution]
 > **Please do not make public announcements/discussions/issues/posts
 > about potential vulnerabilities on GitHub or any other spaces!**
@@ -21,9 +23,9 @@
    [![GH Sponsors badge]][GH Sponsors URL]
 
 [GH Sponsors badge]:
-https://img.shields.io/badge/pip--tools-transparent?logo=githubsponsors&logoColor=%23EA4AAA&label=Sponsor&color=2a313c
+https://img.shields.io/badge/pypa%2Fpip--tools-transparent?logo=githubsponsors&logoColor=%23EA4AAA&label=Sponsor&color=2a313c
 [GH Sponsors URL]:
-https://github.com/sponsors/pip-tools
+https://github.com/sponsors/pypa
 
 ## Reporting a Vulnerability
 

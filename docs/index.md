@@ -14,6 +14,7 @@
 how-to/index
 reference/index
 contributing
+security
 changelog
 ```
 
