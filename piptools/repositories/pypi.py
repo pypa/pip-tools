@@ -120,17 +120,8 @@ class PyPIRepository(BaseRepository):
 
     def _clear_finder_cache(self) -> None:
         """Clear the cache of installation candidates."""
-        # `finder.find_all_candidates` is an lru_cache wrapped method on older `pip`
-        # versions, which can be cleared with `cache_clear()`
-        # but on newer versions, it's a simple method, and the underlying cache is a
-        # dict on the instance
-        # the same holds for `finder.find_best_candidate`
-        if _pip_api.PIP_VERSION_MAJOR_MINOR >= (25, 1):  # pragma: pip>=25.1 cover
-            self.finder._all_candidates.clear()
-            self.finder._best_candidates.clear()
-        else:  # pragma: pip>=25.1 no cover
-            self.finder.find_all_candidates.cache_clear()
-            self.finder.find_best_candidate.cache_clear()
+        self.finder._all_candidates.clear()
+        self.finder._best_candidates.clear()
 
     @property
     def command(self) -> InstallCommand:
