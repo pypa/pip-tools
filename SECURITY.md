@@ -1,4 +1,4 @@
-> [!tip]
+> [!TIP]
 > We encourage responsible disclosure practices for security issues.
 > This document explains how to share your concerns with us.
 
@@ -6,7 +6,7 @@
 
 <!-- sphinx-inclusion-post-this-line -->
 
-> [!caution]
+> [!CAUTION]
 > **Please do not make public announcements/discussions/issues/posts
 > about potential vulnerabilities on GitHub or any other spaces!**
 >
