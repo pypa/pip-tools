@@ -3450,14 +3450,15 @@ def test_resolution_failure(runner):
     assert out.exit_code != 0, out
 
 
-def test_resolver_reaches_max_rounds(runner):
-    """Test resolver reched max rounds and raises error."""
+def test_max_rounds_zero_error(runner):
+    """Test that --max-rounds 0 is rejected with a clean error."""
     with open("requirements.in", "w") as reqs_out:
         reqs_out.write("six")
 
-    out = runner.invoke(cli, ["--max-rounds", 0])
+    out = runner.invoke(cli, ["--max-rounds", "0"])
 
-    assert out.exit_code != 0, out
+    assert out.exit_code == 2, out
+    assert "Invalid value for '--max-rounds'" in out.stderr
 
 
 def test_preserve_via_requirements_constrained_dependencies_when_run_twice(
