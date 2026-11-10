@@ -3926,7 +3926,10 @@ def test_second_order_requirements_relative_path_in_separate_dir(
 
 
 def test_second_order_requirements_can_be_in_parent_of_cwd(
-    pip_conf, runner, tmp_path, monkeypatch
+    pip_conf,
+    runner,
+    tmp_path,
+    monkeypatch,
 ):
     """
     Test handling of ``-r`` includes when the included requirements file is in the
@@ -4037,11 +4040,7 @@ def test_url_constraints_are_not_treated_as_file_paths(
     ids=("absolute-input", "relative-input"),
 )
 def test_that_self_referential_pyproject_toml_extra_can_be_compiled(
-    pip_conf,
-    runner,
-    tmp_path,
-    monkeypatch,
-    pyproject_path_is_absolute,
+    pip_conf, runner, tmp_path, monkeypatch, pyproject_path_is_absolute
 ):
     """
     Test that a :file:`pyproject.toml` source file can use self-referential extras
