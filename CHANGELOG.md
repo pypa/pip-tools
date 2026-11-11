@@ -2,6 +2,111 @@
 
 <!-- towncrier release notes start -->
 
+## v7.7.0
+
+*2026-11-11*
+
+:::{important}
+
+  *`pip-tools` has moved from [`Jazzband`](https://jazzband.co/) to [`PyPA`](https://pypa.io/)!*
+
+  This move entails various changes for contributors.
+  You can now find [the repo](https://github.com/pypa/pip-tools) hosted under
+  {user}`PyPA`, along with resources like our issue tracker.
+
+:::
+
+### Bug fixes
+
+- Ensure ``pip-sync`` does not uninstall pip when installed via a direct URL
+  -- by {user}`VC067`.
+
+  *PRs and issues:* {issue}`2501`
+
+- Fixed PyPI JSON API URL construction, which was incorrectly removing `/pypi/`.
+  This caused metadata lookups to always resort to download behavior.
+
+  -- by {user}`sirosen`
+
+  *PRs and issues:* {issue}`2519`
+
+### Features
+
+- Add support for Python 3.15 -- by {user}`sirosen`.
+
+
+### Removals and backward incompatible breaking changes
+
+- pip-tools support for `pip` versions prior to 26.2.2 has been removed
+  -- by {user}`sirosen`.
+
+
+### Improved documentation
+
+- The how-to section now covers controlling unsafe packages with
+  `--allow-unsafe` and `--unsafe-package`, including keeping your own project
+  out of the output -- by {user}`Pixeless001`.
+
+  *PRs and issues:* {issue}`2110`
+
+- The canonical doc URL has been updated to <https://pip-tools.pypa.io>
+  -- by {user}`sirosen`, {user}`webknjaz`, and {user}`JacobCoffee`.
+
+  *PRs and issues:* {issue}`2495`
+
+### Packaging updates and notes for downstreams
+
+
+<!-- pyml disable-num-lines 8 commands-show-output -->
+- The core packaging metadata started exposing a new `stable` extra
+  -- by {user}`beruic`, {user}`sirosen` and {user}`webknjaz`.
+
+  This new opt-in install-level feature limits the `pip` dependency to
+  the latest version we're testing in our CI at the time of release.
+
+  ```console
+  $ pip install 'pip-tools [stable]'
+  ```
+
+  *PRs and issues:* {issue}`2257`
+
+- Removed support for Python 3.9 -- by {user}`sirosen`.
+
+  *PRs and issues:* {issue}`2439`
+
+- `pip-tools` now requires `pip` version 26.2.2 or later
+  -- by {user}`sirosen`.
+
+
+### Contributor-facing changes
+
+- `pip-tools` now advertises sponsor links on GitHub -- by {user}`sirosen`.
+
+  *PRs and issues:* {issue}`2496`
+
+- `pip-tools` has a new security reporting policy in a `SECURITY.md`
+  -- by {user}`sirosen`.
+
+  *PRs and issues:* {issue}`2514`
+
+- Doc builds now use MyST's `alert` extension -- by {user}`sirosen`.
+
+
+- Enhanced testsuite to more strictly assert test outcomes -- by {user}`sirosen`.
+
+
+- Fixed pytest warnings in the test suite about passing generators to
+  `parametrize` and setting `PIP_FIND_LINKS` to a path object
+  -- by {user}`Pixeless001`.
+
+
+- With the move to [PyPA](https://pypa.io/), `pip-tools` is now governed by the
+  [PSF Code of Conduct](https://github.com/pypa/.github/blob/main/CODE_OF_CONDUCT.md).
+
+
+- `pip-tools` now tests against `pip` version 26.3 -- by {user}`sirosen`.
+
+
 ## v7.6.2
 
 *2026-10-06*
