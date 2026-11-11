@@ -141,9 +141,10 @@ apidoc_toc_file = None
 
 # -- myst_parser options --------------------------------------------------
 myst_enable_extensions = {
-    "colon_fence",
     # enable admonition blocks using GFM block quote styling
     "alert",
+    # enable use of `:::` syntax for directives
+    "colon_fence",
 }
 
 
