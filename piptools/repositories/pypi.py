@@ -273,7 +273,7 @@ class PyPIRepository(BaseRepository):
         request_failed_error_types = _pip_api.get_pip_request_failed_exception_types()
 
         for index_base_url in index_base_urls:
-            json_url = urllib.parse.urljoin(index_base_url, f"{ireq.name}/json")
+            json_url = _json_api_url(base_url=index_base_url, package_name=ireq.name)
 
             try:
                 response = self.session.get(json_url)
@@ -287,6 +287,10 @@ class PyPIRepository(BaseRepository):
             # Skip this PyPI server, because there is no package
             # or JSON API might be not supported
             if response.status_code == 404:
+                log.debug(
+                    f"Index server {index_base_url!r} did not "
+                    f"provide PyPI JSON API data for {ireq.name!r}."
+                )
                 continue
 
             try:
@@ -520,6 +524,20 @@ def open_local_or_remote_file(link: Link, session: Session) -> Iterator[FileStre
 
 def candidate_version(candidate: InstallationCandidate) -> _BaseVersion:
     return candidate.version
+
+
+def _json_api_url(*, base_url: str, package_name: str) -> str:
+    """
+    Given a base URL for an index server + a package name, get the PyPI JSON API URL.
+
+    Should be ``https://pypi.org/pypi/<package>/json`` for PyPI.
+    This is not well-defined for non-PyPI servers, but they may provide it.
+
+    :param base_url: The true base URL of the index, as returned by
+        :func:`_get_true_base_from_index_url`.
+    :param package_name: The name of the package to lookup.
+    """
+    return urllib.parse.urljoin(base_url, f"pypi/{package_name}/json")
 
 
 def _get_true_base_from_index_url(url: str) -> str:

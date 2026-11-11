@@ -1,3 +1,7 @@
+"""
+Unit testing for the PyPIRepository class and supporting utilities.
+"""
+
 from __future__ import annotations
 
 import pathlib
@@ -7,7 +11,11 @@ import pytest
 from pip._internal.req import InstallRequirement
 from pytest_mock import MockerFixture
 
-from piptools.repositories.pypi import PyPIRepository, _get_true_base_from_index_url
+from piptools.repositories.pypi import (
+    PyPIRepository,
+    _get_true_base_from_index_url,
+    _json_api_url,
+)
 from tests.constants import PACKAGES_PATH
 
 
@@ -54,6 +62,29 @@ from tests.constants import PACKAGES_PATH
 )
 def test_true_base_url_strips_simple_suffix(url: str, expect_result: str) -> None:
     assert _get_true_base_from_index_url(url) == expect_result
+
+
+@pytest.mark.parametrize(
+    ("base_url", "package_name", "expect_result"),
+    (
+        pytest.param(
+            "https://pypi.org/",
+            "foo",
+            "https://pypi.org/pypi/foo/json",
+            id="pypi-base",
+        ),
+        pytest.param(
+            "https://test.pypi.org/",
+            "foo",
+            "https://test.pypi.org/pypi/foo/json",
+            id="test-pypi-base",
+        ),
+    ),
+)
+def test_json_api_url_from_base_url_formats_correctly(
+    base_url: str, package_name: str, expect_result: str
+) -> None:
+    assert _json_api_url(base_url=base_url, package_name=package_name) == expect_result
 
 
 @pytest.mark.parametrize(
