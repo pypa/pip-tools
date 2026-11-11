@@ -68,7 +68,10 @@ def test_true_base_url_strips_simple_suffix(url: str, expect_result: str) -> Non
     ("base_url", "package_name", "expect_result"),
     (
         pytest.param(
-            "https://pypi.org/", "foo", "https://pypi.org/pypi/foo/json", id="pypi-base"
+            "https://pypi.org/",
+            "foo",
+            "https://pypi.org/pypi/foo/json",
+            id="pypi-base",
         ),
         pytest.param(
             "https://test.pypi.org/",
@@ -81,7 +84,7 @@ def test_true_base_url_strips_simple_suffix(url: str, expect_result: str) -> Non
 def test_json_api_url_from_base_url_formats_correctly(
     base_url: str, package_name: str, expect_result: str
 ) -> None:
-    assert _json_api_url(base_url, package_name) == expect_result
+    assert _json_api_url(base_url=base_url, package_name=package_name) == expect_result
 
 
 @pytest.mark.parametrize(

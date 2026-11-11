@@ -273,7 +273,7 @@ class PyPIRepository(BaseRepository):
         request_failed_error_types = _pip_api.get_pip_request_failed_exception_types()
 
         for index_base_url in index_base_urls:
-            json_url = _json_api_url(index_base_url, ireq.name)
+            json_url = _json_api_url(base_url=index_base_url, package_name=ireq.name)
 
             try:
                 response = self.session.get(json_url)
@@ -526,7 +526,7 @@ def candidate_version(candidate: InstallationCandidate) -> _BaseVersion:
     return candidate.version
 
 
-def _json_api_url(base_url: str, package_name: str) -> str:
+def _json_api_url(*, base_url: str, package_name: str) -> str:
     """
     Given a base URL for an index server + a package name, get the PyPI JSON API URL.
 
