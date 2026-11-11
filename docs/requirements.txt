@@ -10,101 +10,79 @@ alabaster==1.0.0
     # via sphinx
 babel==2.18.0
     # via sphinx
-beautifulsoup4==4.14.3
+beautifulsoup4==4.15.0
     # via furo
-boltons==25.0.0
-    # via click-extra
-bracex==2.6
-    # via wcmatch
-build==1.5.0
+build==1.6.1
     # via pip-tools (pyproject.toml)
 certifi==2026.10.23
     # via requests
-charset-normalizer==3.4.4
+charset-normalizer==3.5.2
     # via requests
-click==8.3.1
+click==8.5.1
     # via
-    #   click-extra
-    #   cloup
     #   pip-tools (pyproject.toml)
     #   towncrier
-click-extra==7.5.3
-    # via -r docs/requirements.in
-cloup==3.0.8
-    # via click-extra
-deepmerge==2.0
-    # via click-extra
-distro==1.9.0
-    # via extra-platforms
 docutils==0.22.4
     # via
-    #   click-extra
     #   myst-parser
     #   sphinx
-extra-platforms==8.0.0
-    # via click-extra
+    #   sphinxcontrib-programoutput
 furo==2025.12.19
     # via -r docs/requirements.in
-idna==3.16
+idna==3.20
     # via requests
-imagesize==1.4.1
+imagesize==2.0.1
     # via sphinx
 jinja2==3.1.6
     # via
     #   myst-parser
     #   sphinx
     #   towncrier
-markdown-it-py==4.0.0
+markdown-it-py==4.3.0
     # via
     #   mdit-py-plugins
     #   myst-parser
-markupsafe==3.0.3
+markupsafe==3.0.4
     # via jinja2
-mdit-py-plugins==0.5.0
+mdit-py-plugins==0.7.0
     # via myst-parser
 mdurl==0.1.2
     # via markdown-it-py
-myst-parser==5.0.0
+myst-parser==5.2.0
     # via -r docs/requirements.in
-packaging==26.0
+packaging==26.3
     # via
     #   build
     #   setuptools-scm
     #   sphinx
+    #   vcs-versioning
     #   wheel
-pbr==7.0.3
+pbr==7.1.3
     # via sphinxcontrib-apidoc
-pygments==2.20.0
+pygments==2.21.0
     # via
     #   accessible-pygments
-    #   click-extra
     #   furo
-    #   pygments-ansi-color
     #   sphinx
-pygments-ansi-color==0.3.0
-    # via click-extra
-pyproject-hooks==1.2.0
+pyproject-hooks==1.3.3
     # via
     #   build
     #   pip-tools (pyproject.toml)
 pyyaml==6.0.3
     # via myst-parser
-requests==2.33.0
-    # via
-    #   click-extra
-    #   sphinx
+requests==2.34.2
+    # via sphinx
 roman-numerals==4.1.0
     # via sphinx
-setuptools-scm==9.2.2
+setuptools-scm==10.3.4
     # via -r docs/requirements.in
-snowballstemmer==3.0.1
+snowballstemmer==3.1.1
     # via sphinx
-soupsieve==2.10
+soupsieve==4.1
     # via beautifulsoup4
-sphinx==9.1.0
+sphinx==9.1.1
     # via
     #   -r docs/requirements.in
-    #   click-extra
     #   furo
     #   myst-parser
     #   sphinx-basic-ng
@@ -115,9 +93,9 @@ sphinx==9.1.0
     #   sphinxcontrib-towncrier
 sphinx-basic-ng==1.0.0b2
     # via furo
-sphinx-design==0.7.0
+sphinx-design==0.8.0
     # via -r docs/requirements.in
-sphinx-issues==5.0.1
+sphinx-issues==6.0.0
     # via -r docs/requirements.in
 sphinxcontrib-apidoc==0.6.0
     # via -r docs/requirements.in
@@ -127,9 +105,9 @@ sphinxcontrib-devhelp==2.0.0
     # via sphinx
 sphinxcontrib-htmlhelp==2.1.0
     # via sphinx
-sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-jsmath==2.0.0
     # via sphinx
-sphinxcontrib-programoutput==0.18
+sphinxcontrib-programoutput==0.20
     # via -r docs/requirements.in
 sphinxcontrib-qthelp==2.0.0
     # via sphinx
@@ -137,25 +115,21 @@ sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
 sphinxcontrib-towncrier==0.5.0a0
     # via -r docs/requirements.in
-tabulate==0.9.0
-    # via click-extra
-towncrier==25.8.0
+towncrier==26.9.0
     # via sphinxcontrib-towncrier
-typing-extensions==4.15.0
+typing-extensions==4.16.0
     # via beautifulsoup4
 urllib3==2.8.0
     # via requests
-wcmatch==10.1
-    # via click-extra
-wcwidth==0.5.3
-    # via tabulate
-wheel==0.47.0
+vcs-versioning==2.6.0
+    # via setuptools-scm
+wheel==0.48.0
     # via pip-tools (pyproject.toml)
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==26.3
     # via pip-tools (pyproject.toml)
-setuptools==83.0.0
+setuptools==84.2.1
     # via
     #   pbr
     #   pip-tools (pyproject.toml)
