@@ -4,7 +4,7 @@
 
 ## v7.7.0
 
-*2026-11-11*
+*2026-11-15*
 
 :::{important}
 
@@ -13,6 +13,9 @@
   This move entails various changes for contributors.
   You can now find [the repo](https://github.com/pypa/pip-tools) hosted under
   {user}`PyPA`, along with resources like our issue tracker.
+
+  {user}`webknjaz` has posted notes on the migration on
+  [his blog](https://webknjaz.me/prose/pip-tools-moves-to-pypa/).
 
 :::
 
