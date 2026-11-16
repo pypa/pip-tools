@@ -11,6 +11,7 @@ from .install_requirements import (
     copy_install_requirement,
     create_install_requirement,
     create_install_requirement_from_line,
+    format_specifier,
 )
 from .package_finder import (
     finder_allows_all_prereleases,
@@ -32,6 +33,7 @@ __all__ = (
     "create_install_requirement",
     "create_install_requirement_from_line",
     "copy_install_requirement",
+    "format_specifier",
     "get_pip_request_failed_exception_types",
     "finder_allows_all_prereleases",
     "finder_allows_prereleases_of_req",

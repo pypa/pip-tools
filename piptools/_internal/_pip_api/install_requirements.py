@@ -5,6 +5,7 @@ import typing as _t
 
 from pip._internal.req import InstallRequirement
 from pip._internal.req.constructors import install_req_from_line
+from pip._vendor.packaging.specifiers import SpecifierSet
 from pip._vendor.packaging.utils import canonicalize_name
 from pip._vendor.packaging.version import Version
 
@@ -81,3 +82,13 @@ def copy_install_requirement(
     )
 
     return ireq
+
+
+def format_specifier(ireq: InstallRequirement) -> str:
+    """
+    Generic formatter for pretty printing the specifier part of
+    InstallRequirements to the terminal.
+    """
+    specs = ireq.specifier if ireq.req is not None else SpecifierSet()
+    sorted_specs = sorted(specs, key=lambda x: x.version)
+    return ",".join(str(s) for s in sorted_specs) or "<any>"
