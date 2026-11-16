@@ -64,6 +64,7 @@ jobs:
       security-events: write  # Needed by the nested Zizmor workflow
 
     uses: ./.github/workflows/ci.yml
+    secrets: inherit
     with:
       release-version: ${{ github.ref_name }}
       release-committish: ''
