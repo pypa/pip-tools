@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from unittest import mock
 
 import pytest
@@ -141,6 +142,56 @@ def test_open_local_or_remote_file__remote_file(
                 assert file_stream.size == expected_content_length
 
         mock_response.close.assert_called_once()
+
+
+def test_clear_caches_removes_download_dir(tmp_path):
+    pypi_repository = PyPIRepository([], cache_dir=(tmp_path / "pypi-repo-cache"))
+    download_dir = tmp_path / "pypi-repo-cache" / "pkgs"
+    (download_dir / "ab" / "cd").mkdir(parents=True)
+    (download_dir / "ab" / "cd" / "pkg.whl").write_bytes(b"fake")
+
+    pypi_repository.clear_caches()
+
+    assert not download_dir.exists()
+    # No stale copies are left behind either.
+    assert list((tmp_path / "pypi-repo-cache").iterdir()) == []
+
+
+def test_clear_caches_is_atomic_for_concurrent_readers(tmp_path):
+    """The live cache path must never be observed partially deleted.
+
+    ``shutil.rmtree`` deletes file by file; ``clear_caches`` therefore has
+    to move the directory aside atomically first and only delete the
+    moved copy, so the path passed to ``rmtree`` is never the live one.
+    """
+    pypi_repository = PyPIRepository([], cache_dir=(tmp_path / "pypi-repo-cache"))
+    download_dir = tmp_path / "pypi-repo-cache" / "pkgs"
+    download_dir.mkdir(parents=True)
+    (download_dir / "pkg.whl").write_bytes(b"fake")
+
+    rmtree_calls = []
+    real_rmtree = shutil.rmtree
+
+    def recording_rmtree(path, **kwargs):
+        # By the time anything is deleted, the live path must already
+        # be gone in one piece rather than half-emptied.
+        assert not download_dir.exists()
+        rmtree_calls.append(path)
+        return real_rmtree(path, **kwargs)
+
+    with mock.patch("piptools.repositories.pypi.rmtree", recording_rmtree):
+        pypi_repository.clear_caches()
+
+    assert rmtree_calls
+    assert all(call != os.fspath(download_dir) for call in rmtree_calls)
+    assert not download_dir.exists()
+
+
+def test_clear_caches_without_download_dir(tmp_path):
+    pypi_repository = PyPIRepository([], cache_dir=(tmp_path / "pypi-repo-cache"))
+
+    # Must not raise when there is nothing to clear.
+    pypi_repository.clear_caches()
 
 
 def test_relative_path_cache_dir_is_normalized(from_line):
