@@ -48,6 +48,7 @@ Examples:
 
 
 @click.command(name="pip-sync")
+@click.pass_context
 @options.help_option(epilog=SYNC_EPILOG)
 @options.version
 @options.ask
@@ -69,6 +70,7 @@ Examples:
 @options.config
 @options.no_config
 def cli(
+    ctx: click.Context,
     ask: bool,
     dry_run: bool,
     force: bool,
@@ -90,6 +92,12 @@ def cli(
 ) -> None:
     """Synchronize virtual environment with requirements.txt."""
     log.verbosity = verbose - quiet
+
+    # NOTE: On older click versions, ``src_files`` is not populated
+    # NOTE: automatically from the config file via the default map, so it
+    # NOTE: has to be picked up explicitly here (mirrors pip-compile).
+    if not src_files and ctx.default_map and "src_files" in ctx.default_map:
+        src_files = tuple(ctx.default_map["src_files"])
 
     if not src_files:
         if os.path.exists(DEFAULT_REQUIREMENTS_FILE):
