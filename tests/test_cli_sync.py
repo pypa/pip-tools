@@ -390,6 +390,60 @@ def test_config_option(run, runner, tmp_path_cwd, make_config_file):
 
 
 @mock.patch("piptools.sync.run")
+def test_use_src_files_from_sync_config_section(
+    run, runner, tmp_path_cwd, make_config_file
+):
+    """src_files in [tool.pip-tools.sync] is honored by pip-sync."""
+    make_config_file(
+        "src_files",
+        ["requirements_lock.txt"],
+        config_file_name="pyproject.toml",
+        subsection="sync",
+    )
+    (tmp_path_cwd / "requirements_lock.txt").write_text("six==1.10.0")
+
+    out = runner.pip_sync(["--dry-run"], expect_exit_code=1)
+
+    assert "Would install:" in out.stdout
+    assert "six" in out.stdout
+
+
+@mock.patch("piptools.sync.run")
+def test_shared_src_files_config_is_not_used_by_sync(
+    run, runner, tmp_path_cwd, make_config_file
+):
+    """A shared [tool.pip-tools] src_files is meant for pip-compile only."""
+    make_config_file("src_files", ["requirements_lock.txt"])
+    (tmp_path_cwd / "requirements_lock.txt").write_text("six==1.10.0")
+    (tmp_path_cwd / sync.DEFAULT_REQUIREMENTS_FILE).write_text("django==4.2")
+
+    out = runner.pip_sync(["--dry-run"], expect_exit_code=1)
+
+    assert "django" in out.stdout
+    assert "six" not in out.stdout
+
+
+@mock.patch("piptools.sync.run")
+def test_use_src_files_from_cli_over_sync_config(
+    run, runner, tmp_path_cwd, make_config_file
+):
+    """CLI src_files take precedence over [tool.pip-tools.sync] src_files."""
+    make_config_file(
+        "src_files",
+        ["requirements_lock.txt"],
+        config_file_name="pyproject.toml",
+        subsection="sync",
+    )
+    (tmp_path_cwd / "requirements_lock.txt").write_text("six==1.10.0")
+    (tmp_path_cwd / "other.txt").write_text("django==4.2")
+
+    out = runner.pip_sync(["--dry-run", "other.txt"], expect_exit_code=1)
+
+    assert "django" in out.stdout
+    assert "six" not in out.stdout
+
+
+@mock.patch("piptools.sync.run")
 def test_no_config_option_overrides_config_with_defaults(
     run, runner, tmp_path_cwd, make_config_file
 ):

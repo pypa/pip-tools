@@ -608,9 +608,19 @@ def parse_config_file(
     assert click_context.command.name is not None
     config_section_name = click_context.command.name.removeprefix("pip-")
 
-    piptools_config.update(piptools_config.pop(config_section_name, {}))
+    command_config = piptools_config.pop(config_section_name, {})
     piptools_config.pop("compile", {})
     piptools_config.pop("sync", {})
+
+    if config_section_name == "sync":
+        # A shared ``src_files`` setting is intended for ``pip-compile`` (it
+        # lists source files such as ``pyproject.toml``), so it must not leak
+        # into ``pip-sync``. Only take ``src_files`` for ``pip-sync`` from
+        # the ``[tool.pip-tools.sync]`` section itself.
+        piptools_config.pop("src_files", None)
+        piptools_config.pop("src-files", None)
+
+    piptools_config.update(command_config)
 
     piptools_config = _normalize_keys_in_config(piptools_config)
     piptools_config = _invert_negative_bool_options_in_config(
