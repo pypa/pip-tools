@@ -3209,20 +3209,38 @@ def test_resolution_failure(current_resolver, runner, tmp_path_cwd):
     assert msg in out.stderr
 
 
-def test_resolver_reaches_max_rounds(runner, tmp_path_cwd):
+@legacy_resolver_only
+def test_resolver_reaches_max_rounds(pip_conf, runner, tmp_path_cwd):
     """Test resolver reched max rounds and raises error."""
-    (tmp_path_cwd / "requirements.in").write_text("six")
+    # Use a dependency chain which needs more than one round to resolve,
+    # since --max-rounds is validated to be a positive integer. Only the
+    # legacy resolver resolves a chain like this over multiple rounds; the
+    # backtracking resolver resolves it in a single round.
+    (tmp_path_cwd / "requirements.in").write_text("small_fake_with_deps_and_sub_deps")
 
     # NOTE: The exception raised in this case is not caught, so it is not captured in
     # NOTE: stdout/stderr on the test runner result. This indicates missing exception
     # NOTE: handling in pip-compile which should probably be added.
     out = runner.pip_compile(
-        "--max-rounds 0", expect_exit_code=1, catch_exceptions=True
+        "--max-rounds 1", expect_exit_code=1, catch_exceptions=True
     )
     assert (
         "No stable configuration of concrete packages could be found for the given "
-        "constraints after 0 rounds of resolving."
+        "constraints after 1 rounds of resolving."
     ) in str(out.exception)
+
+
+@pytest.mark.parametrize("max_rounds", ("0", "-1"))
+def test_max_rounds_must_be_positive(runner, tmp_path_cwd, max_rounds):
+    """--max-rounds below 1 is rejected with a clean usage error."""
+    (tmp_path_cwd / "requirements.in").write_text("six")
+
+    out = runner.pip_compile(
+        f"--max-rounds {max_rounds}", expect_exit_code=2, catch_exceptions=True
+    )
+    assert out.exception is None or isinstance(out.exception, SystemExit)
+    assert "Invalid value for '--max-rounds'" in out.stderr
+    assert "is not in the range" in out.stderr
 
 
 def test_preserve_via_requirements_constrained_dependencies_when_run_twice(

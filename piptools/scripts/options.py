@@ -294,6 +294,7 @@ reuse_hashes = click.option(
 max_rounds = click.option(
     "--max-rounds",
     default=10,
+    type=click.IntRange(min=1),
     help="Maximum number of rounds before resolving the requirements aborts.",
 )
 
