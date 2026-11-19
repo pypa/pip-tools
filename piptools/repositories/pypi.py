@@ -5,6 +5,7 @@ import hashlib
 import itertools
 import optparse
 import os
+import secrets
 import typing as _t
 import urllib.parse
 from collections.abc import Iterator
@@ -104,7 +105,22 @@ class PyPIRepository(BaseRepository):
         )
 
     def clear_caches(self) -> None:
-        rmtree(self._download_dir, ignore_errors=True)
+        if not os.path.isdir(self._download_dir):
+            return
+        # Move the cache directory aside with an atomic rename before
+        # deleting it, so that a concurrent pip-compile process never
+        # observes a partially deleted cache at the live path (GH-2393).
+        # Anything still using the old directory keeps working on the
+        # moved copy, and new downloads recreate the live path.
+        stale_dir = f"{self._download_dir}.stale-{os.getpid()}-{secrets.token_hex(6)}"
+        try:
+            os.rename(self._download_dir, stale_dir)
+        except OSError:
+            # Another process may have moved or removed the directory
+            # first; fall back to removing whatever is left at the path.
+            rmtree(self._download_dir, ignore_errors=True)
+            return
+        rmtree(stale_dir, ignore_errors=True)
 
     @property
     def options(self) -> optparse.Values:
