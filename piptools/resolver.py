@@ -34,7 +34,6 @@ from .utils import (
     UNSAFE_PACKAGES,
     as_tuple,
     format_requirement,
-    format_specifier,
     is_pinned_requirement,
     is_url_requirement,
     key_from_ireq,
@@ -428,9 +427,8 @@ class LegacyResolver(BaseResolver):
 
         # Format the best match
         log.debug(
-            "found candidate {} (constraint was {})".format(
-                format_requirement(best_match), format_specifier(ireq)
-            )
+            f"found candidate {format_requirement(best_match)} "
+            f"(constraint was {_pip_api.format_specifier(ireq)})"
         )
         best_match.comes_from = ireq.comes_from
         if hasattr(ireq, "_source_ireqs"):

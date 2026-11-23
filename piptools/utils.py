@@ -153,19 +153,6 @@ def _build_direct_reference_best_efforts(ireq: InstallRequirement) -> str:
     return direct_reference
 
 
-def format_specifier(ireq: InstallRequirement) -> str:
-    """
-    Generic formatter for pretty printing the specifier part of
-    InstallRequirements to the terminal.
-    """
-    # TODO: Ideally, this is carried over to the pip library itself
-    specs = ireq.specifier if ireq.req is not None else SpecifierSet()
-    # FIXME: remove ignore type marker once the following issue get fixed
-    #        https://github.com/python/mypy/issues/9656
-    specs = sorted(specs, key=lambda x: x.version)
-    return ",".join(str(s) for s in specs) or "<any>"
-
-
 def is_pinned_requirement(ireq: InstallRequirement) -> bool:
     """
     Return whether an InstallRequirement is a "pinned" requirement.
