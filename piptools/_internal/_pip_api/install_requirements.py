@@ -84,7 +84,7 @@ def copy_install_requirement(
     return ireq
 
 
-def format_specifier(ireq: InstallRequirement) -> str:
+def format_specifier(ireq: InstallRequirement, /) -> str:
     """
     Generic formatter for pretty printing the specifier part of
     InstallRequirements to the terminal.
