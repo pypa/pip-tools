@@ -108,28 +108,54 @@ def get_dists_to_ignore(installed: Iterable[Distribution]) -> list[str]:
 def merge(
     requirements: Iterable[InstallRequirement], ignore_conflicts: bool
 ) -> ValuesView[InstallRequirement]:
+    """
+    Merge requirements from multiple sources, deduplicating requirements and combining
+    them so long as their specifiers are compatible. Discard all requirements which
+    do not match the current markers.
+
+    Note that URL requirements without a name are defined by precise
+    string match, so ``file:///x/example.zip`` and ``file:///y/example.zip``, and
+    ``example==1.0`` will not merge with each other.
+
+    ``example @ file:///example.zip``, by contrast, will merge with
+    ``file:///x/example.zip#egg=example`` because each specifies the name.
+    """
     by_key: dict[str, InstallRequirement] = {}
 
     for ireq in requirements:
-        # Limitation: URL requirements are merged by precise string match, so
-        # "file:///example.zip#egg=example", "file:///example.zip", and
-        # "example==1.0" will not merge with each other
-        if ireq.match_markers():
-            key = key_from_ireq(ireq)
+        if not ireq.match_markers():
+            continue
 
-            if not ignore_conflicts:
-                existing_ireq = by_key.get(key)
-                if existing_ireq:
-                    # NOTE: We check equality here since we can assume that the
-                    # requirements are all pinned
-                    if (
-                        ireq.req
-                        and existing_ireq.req
-                        and ireq.specifier != existing_ireq.specifier
-                    ):
-                        raise IncompatibleRequirements(ireq, existing_ireq)
+        # the key is typically the name, but it will be the URL for URL requirements
+        # without a name
+        key = key_from_ireq(ireq)
 
+        if ignore_conflicts:
             # TODO: Always pick the largest specifier in case of a conflict
+            by_key[key] = ireq
+            continue
+
+        existing_ireq = by_key.get(key)
+        if not existing_ireq:
+            by_key[key] = ireq
+            continue
+
+        # Check for equality *if* both have a link or specifier
+        # This allows for a merge of requirements with no specifier:
+        # i.e. `six` and `six==1.16.0` can merge, since the former has no specifier
+        # However, if either has a link or specifier, only a perfect match is allowed.
+        existing_spec = (
+            existing_ireq.link,
+            existing_ireq.specifier if existing_ireq.req else None,
+        )
+        new_spec = (ireq.link, ireq.specifier if ireq.req else None)
+
+        if any(existing_spec) and any(new_spec) and existing_spec != new_spec:
+            raise IncompatibleRequirements(ireq, existing_ireq)
+
+        # only write the new requirement if it has a link or specifier -- otherwise, any
+        # existing value should be preserved
+        if any(new_spec):
             by_key[key] = ireq
     return by_key.values()
 

@@ -85,8 +85,19 @@ def test_dependency_tree(fake_dist, installed, root, expected):
     assert actual == set(expected)
 
 
-def test_merge_detect_conflicts(from_line):
-    requirements = [from_line("flask==1"), from_line("flask==2")]
+@pytest.mark.parametrize(
+    "raw_requirements",
+    (
+        pytest.param(["flask==1", "flask==2"], id="exact-pin"),
+        pytest.param(
+            ["flask @ file:///flask1.zip", "flask @ file:///flask2.zip"], id="file-url"
+        ),
+        pytest.param(["flask>1", "flask @ file:///flask.zip"], id="comparator-vs-url"),
+        pytest.param(["flask @ file:///flask.zip", "flask>=0"], id="url-vs-comparator"),
+    ),
+)
+def test_merge_detect_conflicts(from_line, raw_requirements):
+    requirements = [from_line(line) for line in raw_requirements]
 
     with pytest.raises(IncompatibleRequirements):
         merge(requirements, ignore_conflicts=False)
@@ -112,16 +123,26 @@ def test_merge(from_line):
     )
 
 
-def test_merge_urls(from_line):
-    requirements = [
-        from_line("file:///example.zip#egg=example"),
-        from_line("example"),
-        from_line("file:///unrelated.zip"),
-    ]
+@pytest.mark.parametrize(
+    ("input_lines", "merged_result_selects"),
+    (
+        pytest.param(
+            ("file:///example.zip#egg=example", "example", "file:///unrelated.zip"),
+            (0, 2),
+            id="url-first",
+        ),
+        pytest.param(
+            ("example", "file:///example.zip#egg=example", "file:///unrelated.zip"),
+            (1, 2),
+            id="bare-name-first",
+        ),
+    ),
+)
+def test_merge_urls(from_line, input_lines, merged_result_selects):
+    requirements = [from_line(line) for line in input_lines]
+    expect = [requirements[idx] for idx in merged_result_selects]
 
-    assert Counter(requirements[1:]) == Counter(
-        merge(requirements, ignore_conflicts=False)
-    )
+    assert Counter(expect) == Counter(merge(requirements, ignore_conflicts=False))
 
 
 @pytest.mark.parametrize(
