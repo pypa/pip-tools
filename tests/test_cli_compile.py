@@ -3209,20 +3209,38 @@ def test_resolution_failure(current_resolver, runner, tmp_path_cwd):
     assert msg in out.stderr
 
 
-def test_resolver_reaches_max_rounds(runner, tmp_path_cwd):
+def test_resolver_reaches_max_rounds(pip_conf, runner, tmp_path_cwd, current_resolver):
     """Test resolver reched max rounds and raises error."""
-    (tmp_path_cwd / "requirements.in").write_text("six")
+    if current_resolver == "backtracking":
+        # Force a second round: the unsatisfiable existing pin is discarded
+        # in the first round, which exhausts the budget of a single round.
+        (tmp_path_cwd / "requirements.txt").write_text("small-fake-a==9999")
+        (tmp_path_cwd / "requirements.in").write_text("small-fake-a")
+    else:
+        # The legacy resolver needs several rounds to resolve a dependency chain.
+        (tmp_path_cwd / "requirements.in").write_text(
+            "small-fake-with-deps-and-sub-deps"
+        )
 
     # NOTE: The exception raised in this case is not caught, so it is not captured in
     # NOTE: stdout/stderr on the test runner result. This indicates missing exception
     # NOTE: handling in pip-compile which should probably be added.
     out = runner.pip_compile(
-        "--max-rounds 0", expect_exit_code=1, catch_exceptions=True
+        "--max-rounds 1", expect_exit_code=1, catch_exceptions=True
     )
     assert (
         "No stable configuration of concrete packages could be found for the given "
-        "constraints after 0 rounds of resolving."
+        "constraints after 1 rounds of resolving."
     ) in str(out.exception)
+
+
+@pytest.mark.parametrize("rounds", ("0", "-1"))
+def test_max_rounds_rejects_non_positive_values(runner, rounds):
+    """Test pip-compile rejects non-positive --max-rounds values with a usage error."""
+    out = runner.pip_compile(f"--max-rounds {rounds}", expect_exit_code=2)
+    assert f"Invalid value for '--max-rounds': {rounds} is not in the range x>=1." in (
+        out.stderr
+    )
 
 
 def test_preserve_via_requirements_constrained_dependencies_when_run_twice(
